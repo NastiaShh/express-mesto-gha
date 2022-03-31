@@ -120,7 +120,7 @@ module.exports.login = (req, res, next) => {
           httpOnly: true,
           sameSite: true,
         })
-        .end();
+        .send({ message: 'Авторизация прошла успешно' });
     })
     .catch((err) => {
       next(new UnauthorizedError(err.message));
