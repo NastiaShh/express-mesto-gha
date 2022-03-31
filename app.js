@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
-const { validateLoginInfo } = require('./middlewares/validation');
+const { validateRegister, validateLogin } = require('./middlewares/validation');
 const NotFoundError = require('./errors/NotFoundError');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -16,8 +16,8 @@ require('dotenv').config();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/signup', validateLoginInfo, createUser);
-app.post('/signin', validateLoginInfo, login);
+app.post('/signup', validateRegister, createUser);
+app.post('/signin', validateLogin, login);
 
 app.use(cookieParser());
 app.use(auth);

@@ -2,23 +2,38 @@ const { celebrate, Joi } = require('celebrate');
 const { isURL } = require('validator');
 const ValidationError = require('../errors/ValidationError');
 
-const validateLoginInfo = celebrate({
+const validateRegister = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(6).max(40),
+    password: Joi.string().required(),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().custom((url) => {
+      if (!isURL(url, { protocols: ['http', 'https'], require_protocol: true })) {
+        throw new ValidationError('Некорректная ссылка');
+      }
+      return url;
+    }),
+  }),
+});
+
+const validateLogin = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
   }),
 });
 
 const validateProfileInfo = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(40),
-    about: Joi.string().min(2).max(200),
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
   }),
 });
 
 const validateAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().custom((url) => {
+    avatar: Joi.string().required().custom((url) => {
       if (!isURL(url, { protocols: ['http', 'https'], require_protocol: true })) {
         throw new ValidationError('Некорректная ссылка');
       }
@@ -36,7 +51,7 @@ const validateUserId = celebrate({
 const validateCard = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().custom((url) => {
+    link: Joi.string().required().custom((url) => {
       if (!isURL(url, { protocols: ['http', 'https'], require_protocol: true })) {
         throw new ValidationError('Некорректная ссылка');
       }
@@ -52,7 +67,8 @@ const validateCardId = celebrate({
 });
 
 module.exports = {
-  validateLoginInfo,
+  validateRegister,
+  validateLogin,
   validateProfileInfo,
   validateAvatar,
   validateUserId,
