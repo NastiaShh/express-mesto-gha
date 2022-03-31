@@ -1,90 +1,76 @@
-const card = require('../models/card');
+const Card = require('../models/card');
+const ValidationError = require('../errors/ValidationError');
+const NotFoundError = require('../errors/NotFoundError');
 
-const BAD_REQUEST_ERROR = 400;
-const NOT_FOUND_ERROR = 404;
-const SERVER_ERROR = 500;
-
-module.exports.getCards = (req, res) => {
-  card.find({})
+module.exports.getCards = (req, res, next) => {
+  Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const owner = req.user._id;
   const { name, link } = req.body;
-  card.create({ name, link, owner })
-    .then((data) => res.send({ data }))
+  Card.create({ name, link, owner })
+    .then((cards) => res.send({ data: cards }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Данные карточки некорректны' });
-        return;
+        next(new ValidationError('Данные карточки некорректны'));
+      } else {
+        next(err);
       }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
-module.exports.deleteCard = (req, res) => {
-  card.findByIdAndDelete(req.params.cardId)
+module.exports.deleteCard = (req, res, next) => {
+  Card.findByIdAndDelete(req.params.cardId)
     .orFail(() => {
-      throw new Error('NotFound');
+      throw new NotFoundError('Карточка не найдена');
     })
-    .then((data) => res.send({ data }))
+    .then((cards) => res.send({ data: cards }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Данные карточки некорректны' });
-        return;
+        next(new ValidationError('Данные карточки некорректны'));
+      } else {
+        next(err);
       }
-      if (err.message === 'NotFound') {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
-module.exports.likeCard = (req, res) => {
-  card.findByIdAndUpdate(
+module.exports.likeCard = (req, res, next) => {
+  Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
     .orFail(() => {
-      throw new Error('NotFound');
+      throw new NotFoundError('Карточка не найдена');
     })
-    .then((data) => res.send(data))
+    .then((cards) => res.send({ data: cards }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Данные карточки некорректны' });
-        return;
+        next(new ValidationError('Данные карточки некорректны'));
+      } else {
+        next(err);
       }
-      if (err.message === 'NotFound') {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
-  card.findByIdAndUpdate(
+module.exports.dislikeCard = (req, res, next) => {
+  Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
     .orFail(() => {
-      throw new Error('NotFound');
+      throw new NotFoundError('Карточка не найдена');
     })
-    .then((data) => res.send(data))
+    .then((cards) => res.send({ data: cards }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Данные карточки некорректны' });
-        return;
+        next(new ValidationError('Данные карточки некорректны'));
+      } else {
+        next(err);
       }
-      if (err.message === 'NotFound') {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
