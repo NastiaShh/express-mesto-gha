@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const { login, createUser } = require('./controllers/users');
@@ -20,6 +21,7 @@ app.post('/signup', validateRegister, createUser);
 app.post('/signin', validateLogin, login);
 
 app.use(cookieParser());
+app.use(helmet());
 app.use(auth);
 
 app.use('/users', require('./routes/users'));
